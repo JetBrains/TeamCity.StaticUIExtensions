@@ -1,4 +1,4 @@
-Plugin for TeamCity for customizing TeamCity server pages with include of some custom content.
+Plugin for TeamCity for customizing TeamCity server pages with include of some custom content or server separate static pages
 
 Requirements:
 =============
@@ -19,7 +19,9 @@ unpacked .exe or .tar.gz TeamCity distribution.
 Usage:
 ======
 
-Configuration file of plugin is available under: 
+1) Custom content to be included as a part of server pages
+
+Configuration file of plugin is available under:
 
     [TeamCity Data Directory]/config/_static_ui_extensions/static-ui-extensions.xml
 
@@ -59,6 +61,22 @@ Sample usages:
  - add google analytics to TeamCity installation
  - add instance-specific info/announcement
  - patch TeamCity CSS/JS
+
+
+2) Static pages
+
+Place content you want to server under
+
+[TeamCity Data Directory]/config/_static_ui_extensions/pages directory.
+
+Pages will be available under the /<TC context path>/app/static_content/
+
+Sample usages:
+==============
+- add static html widgets, e.g. Top Investigations, Build Status etc
+
+
+
 
 
 

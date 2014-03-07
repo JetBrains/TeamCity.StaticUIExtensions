@@ -29,10 +29,12 @@ public interface Configuration {
   /**
    * @return path to plugin configuration file
    */
-  @NotNull File getConfigurationXml();
+  @NotNull
+  File getConfigurationXml();
 
   /**
    * Maps relative file path from configuration to FileSystem path
+   *
    * @param path path to map
    * @return mapped path of null
    */
@@ -44,4 +46,7 @@ public interface Configuration {
    */
   @NotNull
   String getAccessToken();
+
+  @NotNull
+  File getIncludeFilesBase();
 }

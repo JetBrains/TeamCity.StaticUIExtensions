@@ -61,6 +61,7 @@ public class StaticContentController extends BaseController {
                                   @NotNull final HttpServletResponse response) throws Exception {
 
     final String token = request.getParameter(myPaths.getTokenParameter());
+
     if (!myConfig.getAccessToken().equals(token)) {
       response.sendError(HttpStatus.SC_NOT_FOUND, "Path not found. Invalid access token");
       return null;
