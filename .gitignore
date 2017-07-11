@@ -1,2 +1,7 @@
 .idea/workspace.xml
 out
+**.iml
+.idea/
+build/
+.gradle/
+

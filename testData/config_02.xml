@@ -1,0 +1,6 @@
+<?xml version="1.0" ?>
+<teamcity-static-ui-extensions>
+  <rule place-id="ALL_PAGES_HEADER" html-file="header.html">
+     <url equals="overview.html" />
+  </rule>
+</teamcity-static-ui-extensions>

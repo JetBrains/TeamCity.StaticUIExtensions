@@ -1,0 +1,16 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="PLUGIN tests">
+  <test name="PLUGIN tests">
+    <classes>
+      <class name="SimpleTest"/>
+      <class name="jetbrains.buildServer.staticUIExtensions.PagePlacesCollectorTest"/>
+      <class name="jetbrains.buildServer.staticUIExtensions.ConfigurationReaderTest"/>
+      <class name="jetbrains.buildServer.staticUIExtensions.RulePageExtensionTest"/>
+      <class name="jetbrains.buildServer.staticUIExtensions.ConfigurationWatcherTest"/>
+      <class name="jetbrains.buildServer.staticUIExtensions.ConfigurationListenerTest"/>
+      <class name="jetbrains.buildServer.staticUIExtensions.StaticPageContentControllerTest"/>
+      <class name="jetbrains.buildServer.staticUIExtensions.StaticContentControllerTest"/>
+    </classes>
+  </test>
+</suite>
+

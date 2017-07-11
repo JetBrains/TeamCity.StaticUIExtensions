@@ -2,7 +2,7 @@ A TeamCity plugin allowing you to customize TeamCity server pages by including s
 
 Requirements:
 =============
-TeamCity 6.5 or newer
+TeamCity 2017.1 or newer
 
 License:
 ========
@@ -12,9 +12,8 @@ Builds:
 =======
 Download the plugin from [teamcity.jetbrains.com]( https://teamcity.jetbrains.com/viewType.html?buildTypeId=TeamCityPluginsByJetBrains_Unsorted_StaticUiExtensionsAgainstTeamCity90x)
 
-To build locally, open the project with IntelliJ IDEA, create the "plugin-zip" artifact. 
-You may also need to set up the TeamCityDistribution path variable in IDEA to point to the
-unpacked .exe or .tar.gz TeamCity distribution. 
+To build locally, open the `build.gradle` project and run `serverPlugin` task. Check [gradle-teamcity-plugin](https://github.com/rodm/gradle-teamcity-plugin) 
+for more development documentation
 
 Usage:
 ======

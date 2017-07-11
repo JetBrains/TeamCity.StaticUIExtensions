@@ -1,0 +1,4 @@
+<?xml version="1.0" ?>
+<teamcity-static-ui-extensions>
+  <rule place-id="ALL_PAGES_HEADER" js-file="header.js"/>
+</teamcity-static-ui-extensions>
