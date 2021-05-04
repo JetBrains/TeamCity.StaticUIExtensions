@@ -21,9 +21,11 @@ import jetbrains.buildServer.web.PagePlacesEx;
 import jetbrains.buildServer.web.openapi.PlaceId;
 import org.jmock.Mock;
 import org.testng.Assert;
+import org.testng.SkipException;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Collection;
 
@@ -61,6 +63,12 @@ public class PagePlacesCollectorTest extends BaseTestCase {
 
   @Test
   public void testListPagePlacesIncludesRegisteredPlaceIds() {
+    try {
+      PagePlacesEx.class.getMethod("getRegisteredPlaceIds");
+    } catch (NoSuchMethodException e) {
+      throw new SkipException("This test cannot be executed with this version of TeamCity");
+    }
+
     myMockPagePlaces.stubs().method("getRegisteredPlaceIds").will(returnValue(Arrays.asList(new PlaceId("id1"), new PlaceId("id2"))));
 
     PagePlacesCollector collector = new PagePlacesCollector(myPagePlaces);

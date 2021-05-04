@@ -60,7 +60,6 @@ public class StaticContentControllerTest extends BaseControllerTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     Mock mockPagePlaces = mock(PagePlacesEx.class);
-    mockPagePlaces.stubs().method("getRegisteredPlaceIds").will(returnValue(Collections.emptyList()));
     PagePlacesEx pagePlaces = (PagePlacesEx) mockPagePlaces.proxy();
     myCollector = new PagePlacesCollector(pagePlaces);
     myReader = new ConfigurationReaderImpl(myCollector);

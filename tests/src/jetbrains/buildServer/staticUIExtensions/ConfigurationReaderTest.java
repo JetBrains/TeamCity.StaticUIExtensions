@@ -43,7 +43,6 @@ public class ConfigurationReaderTest extends BaseTestCase {
   protected void setUp() throws Exception {
     super.setUp();
     Mock mockPagePlaces = mock(PagePlacesEx.class);
-    mockPagePlaces.stubs().method("getRegisteredPlaceIds").will(returnValue(Collections.emptyList()));
     myCollector = new PagePlacesCollector((PagePlacesEx) mockPagePlaces.proxy());
     myReader = new ConfigurationReaderImpl(myCollector);
   }
