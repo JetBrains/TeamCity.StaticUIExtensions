@@ -29,9 +29,11 @@ import jetbrains.buildServer.staticUIExtensions.web.ControllerPaths;
 import jetbrains.buildServer.staticUIExtensions.web.StaticContentCache;
 import jetbrains.buildServer.staticUIExtensions.web.StaticContentController;
 import jetbrains.buildServer.util.FileUtil;
+import jetbrains.buildServer.web.PagePlacesEx;
 import jetbrains.buildServer.web.openapi.WebControllerManager;
 import org.jetbrains.annotations.NotNull;
 import org.jmock.Expectations;
+import org.jmock.Mock;
 import org.jmock.Mockery;
 import org.springframework.mock.web.MockServletContext;
 import org.testng.annotations.BeforeMethod;
@@ -39,6 +41,7 @@ import org.testng.annotations.Test;
 
 import javax.servlet.ServletContext;
 import java.io.File;
+import java.util.Collections;
 
 @Test
 public class StaticContentControllerTest extends BaseControllerTestCase {
@@ -56,7 +59,10 @@ public class StaticContentControllerTest extends BaseControllerTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myCollector = new PagePlacesCollector();
+    Mock mockPagePlaces = mock(PagePlacesEx.class);
+    mockPagePlaces.stubs().method("getRegisteredPlaceIds").will(returnValue(Collections.emptyList()));
+    PagePlacesEx pagePlaces = (PagePlacesEx) mockPagePlaces.proxy();
+    myCollector = new PagePlacesCollector(pagePlaces);
     myReader = new ConfigurationReaderImpl(myCollector);
   }
 

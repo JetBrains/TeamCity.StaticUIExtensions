@@ -20,12 +20,15 @@ import jetbrains.buildServer.BaseTestCase;
 import jetbrains.buildServer.staticUIExtensions.config.ConfigurationReader;
 import jetbrains.buildServer.staticUIExtensions.config.ConfigurationReaderImpl;
 import jetbrains.buildServer.staticUIExtensions.model.Rule;
+import jetbrains.buildServer.web.PagePlacesEx;
 import jetbrains.buildServer.web.openapi.PlaceId;
+import org.jmock.Mock;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * @author Eugene Petrenko (eugene.petrenko@gmail.com)
@@ -39,7 +42,9 @@ public class ConfigurationReaderTest extends BaseTestCase {
   @Override
   protected void setUp() throws Exception {
     super.setUp();
-    myCollector = new PagePlacesCollector();
+    Mock mockPagePlaces = mock(PagePlacesEx.class);
+    mockPagePlaces.stubs().method("getRegisteredPlaceIds").will(returnValue(Collections.emptyList()));
+    myCollector = new PagePlacesCollector((PagePlacesEx) mockPagePlaces.proxy());
     myReader = new ConfigurationReaderImpl(myCollector);
   }
 

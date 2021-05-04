@@ -17,10 +17,14 @@
 package jetbrains.buildServer.staticUIExtensions;
 
 import jetbrains.buildServer.BaseTestCase;
+import jetbrains.buildServer.web.PagePlacesEx;
 import jetbrains.buildServer.web.openapi.PlaceId;
+import org.jmock.Mock;
 import org.testng.Assert;
+import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.util.Arrays;
 import java.util.Collection;
 
 /**
@@ -28,9 +32,20 @@ import java.util.Collection;
  *         Date: 16.11.11 18:24
  */
 public class PagePlacesCollectorTest extends BaseTestCase {
+  private PagePlacesEx myPagePlaces;
+  private Mock myMockPagePlaces;
+
+  @BeforeMethod(alwaysRun = true)
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+    myMockPagePlaces = mock(PagePlacesEx.class);
+    myPagePlaces = (PagePlacesEx) myMockPagePlaces.proxy();
+  }
+
   @Test
   public void testListPagePlaces() {
-    final Collection<PlaceId> placeIds = new PagePlacesCollector().getPlaceIds().values();
+    final Collection<PlaceId> placeIds = new PagePlacesCollector(myPagePlaces).getPlaceIds().values();
     Assert.assertTrue(placeIds.size() > 0);
     Assert.assertTrue(placeIds.contains(PlaceId.ALL_PAGES_FOOTER));
     Assert.assertTrue(placeIds.contains(PlaceId.ALL_PAGES_HEADER));
@@ -38,9 +53,18 @@ public class PagePlacesCollectorTest extends BaseTestCase {
 
   @Test
   public void testListPagePlacesExcludesTabs() {
-    final Collection<PlaceId> placeIds = new PagePlacesCollector().getPlaceIds().values();
+    final Collection<PlaceId> placeIds = new PagePlacesCollector(myPagePlaces).getPlaceIds().values();
     Assert.assertTrue(placeIds.size() > 0);
     Assert.assertFalse(placeIds.contains(PlaceId.ADMIN_SERVER_CONFIGURATION_TAB));
     Assert.assertFalse(placeIds.contains(PlaceId.MY_TOOLS_TABS));
+  }
+
+  @Test
+  public void testListPagePlacesIncludesRegisteredPlaceIds() {
+    myMockPagePlaces.stubs().method("getRegisteredPlaceIds").will(returnValue(Arrays.asList(new PlaceId("id1"), new PlaceId("id2"))));
+
+    PagePlacesCollector collector = new PagePlacesCollector(myPagePlaces);
+    assertTrue(collector.getPlaceIds().containsKey("id1"));
+    assertTrue(collector.getPlaceIds().containsKey("id2"));
   }
 }

@@ -17,11 +17,13 @@
 package jetbrains.buildServer.staticUIExtensions;
 
 import com.intellij.openapi.diagnostic.Logger;
+import jetbrains.buildServer.web.PagePlacesEx;
 import jetbrains.buildServer.web.openapi.PlaceId;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.*;
 
@@ -32,36 +34,17 @@ import java.util.*;
 public class PagePlacesCollector {
   private static final Logger LOG = Logger.getInstance(PagePlacesCollector.class.getName());
 
-  private Map<String, PlaceId> myPlaces;
+  private final PagePlacesEx myPagePlaces;
 
-  @NotNull
-  private Map<String, PlaceId> listAllPagePlaces() {
-    final Field[] fields = PlaceId.class.getDeclaredFields();
-    Map<String, PlaceId> result = new TreeMap<String, PlaceId>();
-
-    for (Field field : fields) {
-      final int modifiers = field.getModifiers();
-      if (Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers) && Modifier.isPublic(modifiers) && PlaceId.class.equals(field.getType())) {
-        field.setAccessible(true);
-        try {
-          final String name = field.getName();
-          if (name.endsWith("TAB") || name.endsWith("TABS")) continue;
-          result.put(name, (PlaceId) field.get(null));
-        } catch (IllegalAccessException e) {
-          LOG.warn("Failed to read field of " + PlaceId.class);
-        }
-      }
-    }
-    return Collections.unmodifiableMap(result);
+  public PagePlacesCollector(@NotNull PagePlacesEx pagePlaces) {
+    myPagePlaces = pagePlaces;
   }
-
 
   @NotNull
   public Map<String, PlaceId> getPlaceIds() {
-    if (myPlaces == null) {
-      myPlaces = listAllPagePlaces();
-    }
-    return myPlaces;
+    Map<String, PlaceId> ids = getAllPlaceIds();
+    if (ids.isEmpty()) return getAllPlaceIdsBefore2020_2();
+    return ids;
   }
 
   @Nullable
@@ -69,12 +52,60 @@ public class PagePlacesCollector {
     if (placeId == null) return null;
     placeId = placeId.trim();
 
-    for (Map.Entry<String, PlaceId> e : getPlaceIds().entrySet()) {
-      if (e.getKey().equalsIgnoreCase(placeId)) {
-        return e.getValue();
+    Map<String, PlaceId> placeIds = getPlaceIds();
+    return placeIds.get(placeId);
+  }
+
+  @NotNull
+  private Map<String, PlaceId> getAllPlaceIds() {
+    Map<String, PlaceId> res = new TreeMap<>(String::compareToIgnoreCase);
+    try {
+      Method registeredPlaceIdsMethod = PagePlacesEx.class.getMethod("getRegisteredPlaceIds");
+      Object list = registeredPlaceIdsMethod.invoke(myPagePlaces);
+      if (list instanceof List) {
+        for (Object e: (List)list) {
+          if (e instanceof PlaceId) {
+            PlaceId id = (PlaceId) e;
+            if (!isCustomTab(id)) {
+              res.put(id.getId(), id);
+            }
+          } else {
+            LOG.debug("Unexpected object type returned by the PagePlacesEx.getRegisteredPlaceIds() method: " + e.getClass().getName());
+          }
+        }
       }
+    } catch (NoSuchMethodException e) {
+      // this version of TeamCity does not allow to register a place id
+    } catch (Exception e) {
+      LOG.debug("Could not obtain a list of registered PlaceIds", e);
     }
 
-    return null;
+    return res;
+  }
+
+  private boolean isCustomTab(@NotNull PlaceId id) {
+    return id.getId().endsWith("@TAB");
+  }
+
+  @NotNull
+  private Map<String, PlaceId> getAllPlaceIdsBefore2020_2() {
+    Map<String, PlaceId> result = new TreeMap<>(String::compareToIgnoreCase);
+    final Field[] fields = PlaceId.class.getDeclaredFields();
+
+    for (Field field : fields) {
+      final int modifiers = field.getModifiers();
+      if (Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers) && Modifier.isPublic(modifiers) && PlaceId.class.equals(field.getType())) {
+        field.setAccessible(true);
+        try {
+          PlaceId id = (PlaceId) field.get(null);
+          if (isCustomTab(id)) continue;
+          result.put(id.getId(), id);
+          result.put(field.getName(), id); // left for compatibility
+        } catch (IllegalAccessException e) {
+          LOG.warn("Failed to read field of " + PlaceId.class);
+        }
+      }
+    }
+    return result;
   }
 }
