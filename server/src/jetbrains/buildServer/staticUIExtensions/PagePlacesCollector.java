@@ -67,7 +67,7 @@ public class PagePlacesCollector {
           if (e instanceof PlaceId) {
             PlaceId id = (PlaceId) e;
             if (!isCustomTab(id)) {
-              res.put(id.getId(), id);
+              res.put(id.getAnchor(), id);
             }
           } else {
             LOG.debug("Unexpected object type returned by the PagePlacesEx.getRegisteredPlaceIds() method: " + e.getClass().getName());
@@ -84,7 +84,7 @@ public class PagePlacesCollector {
   }
 
   private boolean isCustomTab(@NotNull PlaceId id) {
-    return id.getId().endsWith("@TAB");
+    return id.getAnchor().endsWith("@TAB");
   }
 
   @NotNull
@@ -99,7 +99,7 @@ public class PagePlacesCollector {
         try {
           PlaceId id = (PlaceId) field.get(null);
           if (isCustomTab(id)) continue;
-          result.put(id.getId(), id);
+          result.put(id.getAnchor(), id);
           result.put(field.getName(), id); // left for compatibility
         } catch (IllegalAccessException e) {
           LOG.warn("Failed to read field of " + PlaceId.class);
