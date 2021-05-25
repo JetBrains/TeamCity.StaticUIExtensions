@@ -43,7 +43,7 @@ public class PagePlacesCollector {
   @NotNull
   public Map<String, PlaceId> getPlaceIds() {
     Map<String, PlaceId> ids = getAllPlaceIds();
-    if (ids.isEmpty()) return getAllPlaceIdsBefore2020_2();
+    getAllPlaceIdsBefore2020_2().forEach(ids::putIfAbsent);
     return ids;
   }
 
