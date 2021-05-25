@@ -20,8 +20,10 @@ import jetbrains.buildServer.controllers.AuthorizationInterceptor;
 import jetbrains.buildServer.controllers.BaseController;
 import jetbrains.buildServer.controllers.BaseControllerTestCase;
 import jetbrains.buildServer.controllers.MockRequest;
+import jetbrains.buildServer.serverSide.CriticalErrors;
 import jetbrains.buildServer.serverSide.MockServerPluginDescriptior;
 import jetbrains.buildServer.serverSide.ServerPaths;
+import jetbrains.buildServer.serverSide.impl.FileWatcherFactory;
 import jetbrains.buildServer.staticUIExtensions.config.ConfigurationImpl;
 import jetbrains.buildServer.staticUIExtensions.config.ConfigurationReader;
 import jetbrains.buildServer.staticUIExtensions.config.ConfigurationReaderImpl;
@@ -72,8 +74,8 @@ public class StaticContentControllerTest extends BaseControllerTestCase {
 
     context = new MockServletContext();
 
-
-    myConfig = new ConfigurationImpl(new ServerPaths("root")) {
+    final ServerPaths serverPaths = new ServerPaths("serverPaths");
+    myConfig = new ConfigurationImpl(serverPaths) {
       @NotNull
       public File getIncludeFilesBase() {
         return FileUtil.getCanonicalFile(new File("./tests/testData/test1"));
@@ -99,7 +101,10 @@ public class StaticContentControllerTest extends BaseControllerTestCase {
       allowing(auth);
     }});
 
-    return new StaticContentController(auth, web, new ControllerPaths(new MockServerPluginDescriptior(), myConfig), myConfig, new StaticContentCache());
+    CriticalErrors errors = m.mock(CriticalErrors.class);
+    FileWatcherFactory fileWatcherFactory = new FileWatcherFactory(serverPaths, errors);
+
+    return new StaticContentController(auth, web, new ControllerPaths(new MockServerPluginDescriptior(), myConfig), myConfig, new StaticContentCache(fileWatcherFactory));
   }
 
   @BeforeMethod

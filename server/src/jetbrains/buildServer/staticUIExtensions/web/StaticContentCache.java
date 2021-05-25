@@ -18,7 +18,11 @@ package jetbrains.buildServer.staticUIExtensions.web;
 
 import com.intellij.openapi.diagnostic.Logger;
 import jetbrains.buildServer.configuration.ChangeListener;
+import jetbrains.buildServer.configuration.FileWatcherListener;
 import jetbrains.buildServer.configuration.FilesWatcher;
+import jetbrains.buildServer.serverSide.TeamCityProperties;
+import jetbrains.buildServer.serverSide.impl.FileWatcherFactory;
+import jetbrains.buildServer.staticUIExtensions.ConfigurationChangeListener;
 import jetbrains.buildServer.util.CollectionsUtil;
 import jetbrains.buildServer.util.FileUtil;
 import org.jetbrains.annotations.NotNull;
@@ -27,6 +31,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -34,31 +39,27 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author Eugene Petrenko (eugene.petrenko@gmail.com)
  *         Date: 17.11.11 12:29
  */
-public class StaticContentCache {
+public class StaticContentCache implements ConfigurationChangeListener {
   private static final Logger LOG = Logger.getInstance(StaticContentCache.class.getName());
 
   private final FilesWatcher myWatcher;
-  private final Map<File, Entry> myCache = new ConcurrentHashMap<File, Entry>();
+  private final Map<File, Entry> myCache = new ConcurrentHashMap<>();
 
-  public StaticContentCache() {
-    myWatcher = new FilesWatcher(new FilesWatcher.WatchedFilesProvider() {
-      public File[] getWatchedFiles() {
-        final Collection<File> values = new ArrayList<File>();
-        values.addAll(myCache.keySet());
-        return values.toArray(new File[values.size()]);
+  public StaticContentCache(@NotNull FileWatcherFactory fileWatcherFactory) {
+    myWatcher = fileWatcherFactory.createManyFilesWatcher(() -> {
+      final List<File> values = new ArrayList<>();
+      values.addAll(myCache.keySet());
+      return values.toArray(new File[0]);
+    }, TeamCityProperties.getInteger("teamcity.staticUIExtensions.filesCache.updatePeriod", 5000));
+
+    myWatcher.registerListener((newFiles, modifiedFiles, removedFiles) -> {
+      for (File file : CollectionsUtil.join(newFiles, modifiedFiles, removedFiles)) {
+        LOG.info("Detected change in " + file + ".");
+        removeEntry(file);
       }
     });
 
-    myWatcher.registerListener(new ChangeListener() {
-      public void changeOccured(String requestor) {
-        for (File file : CollectionsUtil.join(myWatcher.getModifiedFiles(), myWatcher.getRemovedFiles())) {
-          LOG.info("Detected change in " + file + ".");
-          removeEntry(file);
-        }
-      }
-    });
-
-    myWatcher.setSleepingPeriod(5000);
+    myWatcher.start();
   }
 
   public char[] getContent(@NotNull final File file) throws IOException {
@@ -87,7 +88,13 @@ public class StaticContentCache {
     myWatcher.stop();
   }
 
-  private static interface Entry {
+  @Override
+  public void configurationChanged() {
+    // clear cache to re-read files content once a change is done to the plugin configuration
+    myCache.clear();
+  }
+
+  private interface Entry {
     @NotNull
     char[] getChars() throws IOException;
   }
@@ -100,7 +107,7 @@ public class StaticContentCache {
     }
 
     @NotNull
-    public char[] getChars() throws IOException {
+    public char[] getChars() {
       return myData;
     }
   }
