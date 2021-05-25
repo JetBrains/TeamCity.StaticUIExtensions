@@ -74,7 +74,7 @@ public class ConfigurationReaderImpl implements ConfigurationReader {
       final String placeId = xmlRule.getAttributeValue("place-id");
 
       final PlaceId place = myCollector.findByName(placeId);
-      if (placeId == null) {
+      if (place == null) {
         throw new ConfigurationException("Rule contains unknown place-id: " + XmlUtil.to_s(xmlRule));
       }
 
