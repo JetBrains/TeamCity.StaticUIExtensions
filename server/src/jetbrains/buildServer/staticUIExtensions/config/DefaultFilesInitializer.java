@@ -17,13 +17,15 @@
 package jetbrains.buildServer.staticUIExtensions.config;
 
 import com.intellij.openapi.diagnostic.Logger;
+import jetbrains.buildServer.serverSide.impl.persisting.SettingsPersister;
 import jetbrains.buildServer.staticUIExtensions.PagePlacesCollector;
 import jetbrains.buildServer.util.FileUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
+import java.nio.charset.StandardCharsets;
+import java.util.Collections;
 
 /**
  * @author Eugene Petrenko (eugene.petrenko@gmail.com)
@@ -34,11 +36,14 @@ public class DefaultFilesInitializer {
 
   private final PagePlacesCollector myCollector;
   private final ConfigurationImpl myConfig;
+  private final SettingsPersister mySettingsPersister;
 
   public DefaultFilesInitializer(@NotNull final ConfigurationImpl config,
-                                 @NotNull final PagePlacesCollector collector) {
+                                 @NotNull final PagePlacesCollector collector,
+                                 @NotNull final SettingsPersister settingsPersister) {
     myConfig = config;
     myCollector = collector;
+    mySettingsPersister = settingsPersister;
   }
 
   public void writeInitialFiles() {
@@ -59,42 +64,57 @@ public class DefaultFilesInitializer {
     final File config = myConfig.getConfigurationXml();
     final File distConfig = new File(myConfig.getConfigurationXml() + ".dist");
 
-    final boolean useDefaultConfigs = usesDefaultConfig(config);
+    final boolean defaultConfig = isDefaultConfig(config);
 
     updateDistConfig(distConfig);
 
-    if (useDefaultConfigs) {
-      updateConfig(config, distConfig);
+    if (defaultConfig) {
+      // if main config is the same as default, then it was not changed and we can update
+      // all the configs from the resources
+      writeConfigFromDist(config, distConfig);
 
-      for (String name : Arrays.asList("beforeContent.html")) {
+      for (String name : Collections.singletonList("beforeContent.html")) {
         final File file = new File(myConfig.getIncludeFilesBase(), name);
         if (!file.isFile()) {
-          FileUtil.copyResource(getClass(), "/" + name, file);
+          saveResourceToFile("/" + name, file);
         }
       }
     }
   }
 
-  private void updateConfig(File config, File distConfig) {
+  private void writeConfigFromDist(@NotNull File config, @NotNull File distConfig) {
     try {
-      FileUtil.copy(distConfig, config);
+      String configXml = FileUtil.readText(distConfig, StandardCharsets.UTF_8.name());
+      mySettingsPersister.scheduleSaveFile("Writing the " + config.getName(), config, configXml.getBytes(StandardCharsets.UTF_8));
     } catch (IOException e) {
-      LOG.warn("Failed to copy ");
+      LOG.warnAndDebugDetails("Failed to copy " + distConfig + " to " + config, e);
     }
   }
 
-  private void updateDistConfig(File distConfig) {
+  private void updateDistConfig(@NotNull File distConfig) {
     try {
-      FileUtil.copyResource(getClass(), "/static-ui-extensions.xml", distConfig);
-      String configText = new String(FileUtil.loadFileText(distConfig, "utf-8"));
+      String configText = FileUtil.readResourceAsString(getClass(), "/static-ui-extensions.xml", StandardCharsets.UTF_8);
+      if (configText == null) return;
+
       configText = configText.replaceAll("@@@PAGE_PLACES_LIST@@@", generatePagePlaces());
-      FileUtil.writeFile(distConfig, configText);
+      mySettingsPersister.scheduleSaveFile("Updating static-ui-extensions.xml.dist", distConfig, configText.getBytes(StandardCharsets.UTF_8));
     } catch (IOException e) {
-      LOG.warn("Failed to update " + distConfig + ". " + e.getMessage(), e);
+      LOG.warnAndDebugDetails("Failed to write " + distConfig, e);
     }
   }
 
-  private boolean usesDefaultConfig(File config) {
+  private void saveResourceToFile(@NotNull String resourcePath, @NotNull File targetFile) {
+    try {
+      String configText = FileUtil.readResourceAsString(getClass(), resourcePath, StandardCharsets.UTF_8);
+      if (configText == null) return;
+
+      mySettingsPersister.scheduleSaveFile("Writing the " + targetFile.getName(), targetFile, configText.getBytes(StandardCharsets.UTF_8));
+    } catch (IOException e) {
+      LOG.warnAndDebugDetails("Failed to write " + targetFile, e);
+    }
+  }
+
+  private boolean isDefaultConfig(@NotNull File config) {
     if (!config.exists()) return true;
     try {
       return FileUtil.readText(config).equals(FileUtil.readText(new File(config.getPath() + ".dist")));
