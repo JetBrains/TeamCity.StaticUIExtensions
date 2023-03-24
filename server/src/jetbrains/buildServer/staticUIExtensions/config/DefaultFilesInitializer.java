@@ -47,17 +47,7 @@ public class DefaultFilesInitializer {
   }
 
   public void writeInitialFiles() {
-    createPluginDirectory();
     writeDistConfig();
-  }
-
-  private void createPluginDirectory() {
-    final File includeFilesBase = myConfig.getIncludeFilesBase();
-    if (!includeFilesBase.isDirectory()) {
-      LOG.info("Creating folder for StaticUIExtensions files at: " + includeFilesBase);
-      //noinspection ResultOfMethodCallIgnored
-      includeFilesBase.mkdirs();
-    }
   }
 
   private void writeDistConfig() {
