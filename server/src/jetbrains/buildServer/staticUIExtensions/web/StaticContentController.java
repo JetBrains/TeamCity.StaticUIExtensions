@@ -43,6 +43,7 @@ public class StaticContentController extends BaseController {
     final String path = paths.getResourceControllerRegistrationBase();
     web.registerController(path, this);
     auth.addPathNotRequiringAuth(path);
+    auth.addPathNotRequiringAuth("/login.jsp");
   }
 
   @Override
