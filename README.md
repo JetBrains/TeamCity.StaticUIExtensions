@@ -12,9 +12,20 @@ Builds:
 =======
 Download the plugin from [https://teamcity.jetbrains.com]( https://teamcity.jetbrains.com/buildConfiguration/TeamCityPluginsByJetBrains_StaticUiExtensions_StaticUiExtensionsAgainstTeamCity10?)
 
-To build locally, open the project with IntelliJ IDEA, create the "plugin-zip" artifact. 
-You may also need to set up the TeamCityDistribution path variable in IDEA to point to the
-unpacked .exe or .tar.gz TeamCity distribution. 
+The plugin is built with Maven. To build locally, run:
+
+    mvn package
+
+The resulting plugin archive is `build/target/static-ui-extensions.zip`.
+
+The version written into `teamcity-plugin.xml` defaults to `snapshot` and can be set with
+`-Dplugin.version=<version>`. The TeamCity API version to compile against is controlled by the
+`teamcity-version` property in the root `pom.xml`.
+
+Two tests (`StaticContentControllerTest` and `StaticPageContentControllerTest`) start the full
+TeamCity server test fixture. It needs the TeamCity licensing classes, which are not published to
+the public TeamCity Maven repository, so those tests are skipped unless the build runs against a
+repository that contains them.
 
 Usage:
 ======

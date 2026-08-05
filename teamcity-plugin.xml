@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<teamcity-plugin xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:noNamespaceSchemaLocation="urn:shemas-jetbrains-com:teamcity-plugin-v1-xml">
+  <info>
+    <name>StaticUIExtensions</name>
+    <display-name>Static UI Extensions</display-name>
+    <version>@Plugin_Version@</version> <!-- replaced by the replacer plugin, see build/pom.xml -->
+    <description>Adds static content to TeamCity pages</description>
+    <vendor>
+      <name>@Plugin_Vendor@</name>  <!-- replaced by the replacer plugin, see build/pom.xml -->
+      <url>@Plugin_Vendor_Url@</url> <!-- replaced by the replacer plugin, see build/pom.xml -->
+    </vendor>
+  </info>
+  <deployment use-separate-classloader="true" node-responsibilities-aware="true"/>
+</teamcity-plugin>
