@@ -32,19 +32,6 @@ public class StaticPageContentController extends StaticResourcesController {
                                      @NotNull final HttpDownloadProcessor httpDownloadProcessor) {
     super(httpDownloadProcessor);
     final File container = FileUtil.getCanonicalFile(new File(config.getIncludeFilesBase(), FOLDER_NAME));
-    if (!container.exists()) {
-      try {
-        if (!container.mkdirs() && !container.exists()) {
-          LOG.error("Cannot create pages directory: " + container.getAbsolutePath());
-        } else {
-          LOG.debug("Created empty pages directory: " + container.getAbsolutePath());
-        }
-      } catch (Exception e) {
-        LOG.error("Cannot create pages directory: " + container.getAbsolutePath(), e);
-      }
-    } else if (!container.isDirectory()) {
-      LOG.warn("Pages directory is not a directory: " + container.getAbsolutePath());
-    }
     setProvider(new StaticResourcesController.ResourceProvider() {
       @Nullable
       public Resource getResourceForPath(@NotNull String path) {
