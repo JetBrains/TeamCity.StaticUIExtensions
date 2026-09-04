@@ -50,6 +50,8 @@ public class StaticContentController extends BaseController {
   protected ModelAndView doHandle(@NotNull final HttpServletRequest request,
                                   @NotNull final HttpServletResponse response) throws Exception {
 
+    response.setCharacterEncoding("UTF-8");
+
     final String token = request.getParameter(myPaths.getTokenParameter());
 
     if (!myConfig.getAccessToken().equals(token)) {
